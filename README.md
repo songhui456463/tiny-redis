@@ -1,13 +1,12 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-# 基于java实现的
+# 基于java实现的简易Redis
 
-## 参考
-=======
-# tiny-redis
-一个基于java实现的简易redis
->>>>>>> 5fdd7b0f48fa80fe7ba6f487d1e041383fe3ecd4
-=======
-# tiny-redis
-一个基于java实现的简易redis
->>>>>>> 5fdd7b0f48fa80fe7ba6f487d1e041383fe3ecd4
+## 参考链接
+https://github.com/houbb/cache <br/>
+https://github.com/cjqCN/tinyredis
+
+## 创作目的
+学以致用，开发一个类似于 redis 的渐进式缓存框架
+
+## 已完成功能
+- 驱除策略(FIFO)
+- 数据类型(String)
