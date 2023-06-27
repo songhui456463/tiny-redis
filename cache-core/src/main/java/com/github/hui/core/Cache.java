@@ -4,10 +4,13 @@ package com.github.hui.core;
 import com.github.hui.api.ICache;
 import com.github.hui.api.ICacheEvict;
 import com.github.hui.api.ICacheEvictContext;
+import com.github.hui.api.ICacheExpire;
 import com.github.hui.exception.CacheRuntimeException;
 import com.github.hui.support.evict.CacheEvictContext;
+import com.github.hui.support.expire.CacheExpire;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,6 +37,11 @@ public class Cache<K, V> implements ICache<K, V> {
     private ICacheEvict<K, V> evict;
 
     /**
+     * 过期策略
+     */
+    private ICacheExpire<K, V> cacheExpire;
+
+    /**
      * 设置缓存实现
      * @param map 具体的map实现
      * @return
@@ -53,8 +61,30 @@ public class Cache<K, V> implements ICache<K, V> {
         return this;
     }
 
+    /**
+     * 设置剔除策略
+     * @param evict 剔除策略
+     * @return
+     */
     public Cache<K, V> cacheEvict(ICacheEvict<K, V> evict) {
         this.evict = evict;
+        return this;
+    }
+
+    /**
+     * 初始化
+     */
+    public void init() {
+        this.cacheExpire = new CacheExpire<>(this);
+    }
+
+    /**
+     * 设置过期策略
+     * @param cacheExpire 设置过期策略
+     * @return
+     */
+    public Cache<K, V> cacheExpire(ICacheExpire<K, V> cacheExpire) {
+        this.cacheExpire = cacheExpire;
         return this;
     }
 
@@ -78,15 +108,41 @@ public class Cache<K, V> implements ICache<K, V> {
         return map.containsValue(value);
     }
 
+    /**
+     *  设置多少时间后过期
+     * @param key           key
+     * @param timeInMills   毫秒时间
+     * @return
+     */
+    @Override
+    public ICache<K, V> expire(K key, long timeInMills) {
+        long expireTime = System.currentTimeMillis() + timeInMills;
+        this.expireAt(key, expireTime);
+        return this;
+    }
+
+    /**
+     * 指定过期时间戳
+     * @param key          key
+     * @param timeInMills  时间戳
+     * @return
+     */
+    @Override
+    public ICache<K, V> expireAt(K key, long timeInMills) {
+        this.cacheExpire.expire(key, timeInMills);
+        return this;
+    }
+
     @Override
     public V get(Object key) {
-        // todo 刷新策略
+        // 惰性删除
+        K refreshKey = (K) key;
+        this.cacheExpire.refreshExpire(Collections.singletonList(refreshKey));
         return map.get(key);
     }
 
     @Override
     public V put(K key, V value) {
-        // todo
         CacheEvictContext<K, V> context = new CacheEvictContext<>();
         // 前置准备，设置上下文信息(包括最大容量，需增加的key，当前缓存信息)
         context.size(sizeLimit)

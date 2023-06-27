@@ -81,6 +81,7 @@ public final class CacheBs<K, V> {
      */
     public ICache<K, V> build() {
         Cache<K, V> cache = new Cache<>();
+        cache.init();
         return cache.map(map)
                 .sizeLimit(size)
                 .cacheEvict(evict);
