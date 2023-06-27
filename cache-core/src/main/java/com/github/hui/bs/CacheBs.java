@@ -2,8 +2,11 @@ package com.github.hui.bs;
 
 import com.github.hui.api.ICache;
 import com.github.hui.api.ICacheEvict;
+import com.github.hui.api.ICacheExpire;
 import com.github.hui.core.Cache;
 import com.github.hui.support.evict.CacheEvicts;
+import com.github.hui.support.expire.CacheExpireInertia;
+import com.github.hui.support.expire.CacheExpireOnSchedule;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -84,6 +87,7 @@ public final class CacheBs<K, V> {
         cache.init();
         return cache.map(map)
                 .sizeLimit(size)
-                .cacheEvict(evict);
+                .cacheEvict(evict)
+                .cacheExpire(new CacheExpireOnSchedule<>(cache));
     }
 }

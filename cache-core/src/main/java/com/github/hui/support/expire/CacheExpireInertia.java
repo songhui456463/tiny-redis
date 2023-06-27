@@ -1,24 +1,19 @@
 package com.github.hui.support.expire;
 
 import com.github.houbb.heaven.util.util.CollectionUtil;
-import com.github.houbb.heaven.util.util.MapUtil;
 import com.github.hui.api.ICache;
 import com.github.hui.api.ICacheExpire;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
- * 普通轮询清理过期数据
+ * 惰性删除
  *
  * @param <K> key
  * @param <V> value
  */
-public class CacheExpire<K, V> implements ICacheExpire<K, V> {
+public class CacheExpireInertia<K, V> implements ICacheExpire<K, V> {
 
     /**
      * 单词清空的数量限制
@@ -35,43 +30,9 @@ public class CacheExpire<K, V> implements ICacheExpire<K, V> {
      */
     private final ICache<K, V> cache;
 
-    /**
-     * 线程池
-     */
-    private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadScheduledExecutor();
 
-    public CacheExpire(ICache<K, V> cache) {
+    public CacheExpireInertia(ICache<K, V> cache) {
         this.cache = cache;
-        this.init();
-    }
-
-    private void init() {
-        EXECUTOR_SERVICE.scheduleAtFixedRate(new ExpireThread(), 100, 100, TimeUnit.MILLISECONDS);
-    }
-
-    /**
-     * 定时任务
-     */
-    class ExpireThread implements Runnable {
-
-        @Override
-        public void run() {
-            // 1 判断是否为空
-            if (MapUtil.isEmpty(expireMap)) {
-                return;
-            }
-
-            // 2 获取 key 进行处理
-            int count = 0;
-            for (Map.Entry<K, Long> entry : expireMap.entrySet()) {
-                if (count >= LIMIT) {
-                    return;
-                }
-
-                expireKey(entry.getKey(), entry.getValue());
-                count++;
-            }
-        }
     }
 
     /**

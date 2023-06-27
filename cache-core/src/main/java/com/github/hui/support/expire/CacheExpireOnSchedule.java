@@ -11,6 +11,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 轮询清理过期数据
  * 按照过期时间去清理过期数据
  * 遇到未过期的数据就可以停止任务
  * 相当于以空间换时间
@@ -18,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  * @param <K> key
  * @param <V> value
  */
-public class CacheExpireSort<K, V> implements ICacheExpire<K, V> {
+public class CacheExpireOnSchedule<K, V> implements ICacheExpire<K, V> {
 
     /**
      * 单词清空的数量限制
@@ -47,7 +48,7 @@ public class CacheExpireSort<K, V> implements ICacheExpire<K, V> {
      */
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadScheduledExecutor();
 
-    public CacheExpireSort(ICache<K, V> cache) {
+    public CacheExpireOnSchedule(ICache<K, V> cache) {
         this.cache = cache;
         this.init();
     }
@@ -62,7 +63,7 @@ public class CacheExpireSort<K, V> implements ICacheExpire<K, V> {
     /**
      * 执行定时任务
      */
-    class ExpireThread implements Runnable {
+    private class ExpireThread implements Runnable {
 
         @Override
         public void run() {
@@ -73,7 +74,8 @@ public class CacheExpireSort<K, V> implements ICacheExpire<K, V> {
 
             // 2 获取 key 进行处理
             int count = 0;
-            clean: for (Map.Entry<Long, List<K>> entry : sortMap.entrySet()) {
+            clean:
+            for (Map.Entry<Long, List<K>> entry : sortMap.entrySet()) {
                 final Long expireAt = entry.getKey();
                 List<K> expireKeys = entry.getValue();
 
@@ -135,7 +137,7 @@ public class CacheExpireSort<K, V> implements ICacheExpire<K, V> {
             return;
         }
 
-        for (K key: keyList) {
+        for (K key : keyList) {
             Long expireAt = expireMap.get(key);
             if (expireAt == null) {
                 return;

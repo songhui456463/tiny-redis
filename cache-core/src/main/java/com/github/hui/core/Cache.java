@@ -7,7 +7,8 @@ import com.github.hui.api.ICacheEvictContext;
 import com.github.hui.api.ICacheExpire;
 import com.github.hui.exception.CacheRuntimeException;
 import com.github.hui.support.evict.CacheEvictContext;
-import com.github.hui.support.expire.CacheExpire;
+import com.github.hui.support.expire.CacheExpireInertia;
+
 
 import java.util.Collection;
 import java.util.Collections;
@@ -75,7 +76,7 @@ public class Cache<K, V> implements ICache<K, V> {
      * 初始化
      */
     public void init() {
-        this.cacheExpire = new CacheExpire<>(this);
+        this.cacheExpire = new CacheExpireInertia<>(this);
     }
 
     /**
@@ -136,8 +137,10 @@ public class Cache<K, V> implements ICache<K, V> {
     @Override
     public V get(Object key) {
         // 惰性删除
-        K refreshKey = (K) key;
-        this.cacheExpire.refreshExpire(Collections.singletonList(refreshKey));
+        if (this.cacheExpire instanceof CacheExpireInertia) {
+            K refreshKey = (K) key;
+            this.cacheExpire.refreshExpire(Collections.singletonList(refreshKey));
+        }
         return map.get(key);
     }
 
